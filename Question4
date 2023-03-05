@@ -1,0 +1,32 @@
+import numpy as np
+import pandas as pd
+
+
+df= pd.read_csv("country_vaccination_stats.csv")
+
+print(df.head())
+print(df.info())
+# Fill missing values in daily_vaccinations column with minimum value of relevant countries
+df['daily_vaccinations'] = df.groupby('country')['daily_vaccinations'].apply(lambda x: x.fillna(x.min()))
+
+# Fill remaining missing values with zero
+df['daily_vaccinations'] = df['daily_vaccinations'].fillna(0)
+
+# Print the total number of vaccinations administered worldwide
+total_vaccinations = df['daily_vaccinations'].sum()
+print("Total number of vaccinations worldwide:", total_vaccinations)
+
+# Calculate the average daily vaccinations for each country
+avg_vaccinations = df.groupby('country')['daily_vaccinations'].mean().reset_index()
+print("Average daily vaccinations per country:")
+print(avg_vaccinations)
+
+# Find the country with the highest daily vaccinations and its vaccine
+max_vaccinations = df.loc[df['daily_vaccinations'].idxmax()]
+print("Country with the highest daily vaccinations:", max_vaccinations['country'])
+print("Vaccine used:", max_vaccinations['vaccines'])
+
+# Find the total number of vaccinations per vaccine
+vaccines = df.groupby('vaccines')['daily_vaccinations'].sum().reset_index()
+print("Total number of vaccinations per vaccine:")
+print(vaccines)
