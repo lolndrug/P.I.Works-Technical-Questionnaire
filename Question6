@@ -1,0 +1,18 @@
+
+import pandas as pd
+
+# Read the input file
+df = pd.read_csv('country_vaccination_stats.csv')
+
+#print(df.head())
+#print(df.info())
+
+
+# Fill missing values in daily_vaccinations column with minimum value of relevant countries
+df['daily_vaccinations'] = df.groupby('country')['daily_vaccinations'].apply(lambda x: x.fillna(x.min()))
+
+# Filter the dataframe for the date , sum the daily_vaccinations column and round the result to an integer
+total_vaccinations = int(round(df[df['date'] == '1/6/2021']['daily_vaccinations'].sum()))
+
+# Print the total vaccinations done on 1/6/2021
+print("Total vaccinations done on 1/6/2021:", total_vaccinations)
