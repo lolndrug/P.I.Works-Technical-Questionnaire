@@ -1,0 +1,15 @@
+UPDATE country_vaccination_stats
+SET country_vaccination_stats = (
+  SELECT median_daily_vaccinations
+  FROM (
+    SELECT country, ROUND(MEDIAN(daily_vaccinations) OVER (PARTITION BY country)) AS median_daily_vaccinations
+    FROM country_vaccination_stats
+    WHERE daily_vaccinations IS NOT NULL
+    UNION ALL
+    SELECT country, 0 AS median_daily_vaccinations
+    FROM (SELECT DISTINCT country FROM country_vaccination_stats) AS distinct_countries
+    WHERE country NOT IN (SELECT DISTINCT country FROM country_vaccination_stats WHERE daily_vaccinations IS NOT NULL)
+  ) AS subquery
+  WHERE vaccinations.country = subquery.country
+)
+WHERE daily_vaccinations IS NULL;
