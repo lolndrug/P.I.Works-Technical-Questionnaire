@@ -1,0 +1,54 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+# Load dataset
+df = pd.read_csv("dataset.csv")
+
+#print the first 5 row of the dataset
+print(df.head())
+#print a concise summary of a dataset
+print(df.info())
+
+# Remove rows with missing values
+df.dropna(inplace=True)
+
+# Balance the data
+#PS: I had to balance the data, otherwise the F1Score was coming out very small.
+num_virus = sum(df['isVirus'])
+num_not_virus = len(df) - num_virus
+if num_virus > num_not_virus:
+    df = df.groupby('isVirus').apply(lambda x: x.sample(n=num_not_virus, random_state=42)).reset_index(drop=True)
+else:
+    df = df.groupby('isVirus').apply(lambda x: x.sample(n=num_virus, random_state=42)).reset_index(drop=True)
+
+sns.pairplot(df, hue='isVirus')
+plt.show()
+
+fig, axs = plt.subplots(1, 4, figsize=(15, 5))
+for i, col in enumerate(df.columns[:-1]):
+    sns.boxplot(x='isVirus', y=col, data=df, ax=axs[i])
+plt.show()
+
+#import sklearn libraries
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df['isVirus'], train_size=0.8, test_size=0.2, random_state=42)
+
+# Train the model
+#Logistic Regression is so effective for binary classification problems(Virus or not Virus)
+log_reg = LogisticRegression(random_state=42).fit(X_train, y_train)
+
+# Make predictions
+y_pred = log_reg.predict(X_test)
+
+# Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
